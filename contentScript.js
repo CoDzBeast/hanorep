@@ -1,33 +1,34 @@
 if (!window.hanzoContentScriptInitialized) {
     window.hanzoContentScriptInitialized = true;
 
+    debugHelper.init();
+    const debugLog = debugHelper.log;
+
     // Ensure the Chrome storage API is available before using it
     if (!chrome || !chrome.storage || !chrome.storage.local) {
         console.error('chrome.storage.local is unavailable');
     }
 
     var extensionEnabled = true; // Default state
-    var debugEnabled = false;
 
-    chrome.storage.local.get('debugEnabled', (data) => {
-        if (data.debugEnabled !== undefined) {
-            debugEnabled = data.debugEnabled;
+    chrome.storage.local.get('extensionEnabled', (data) => {
+        if (data.extensionEnabled !== undefined) {
+            extensionEnabled = data.extensionEnabled;
         }
     });
 
-    function debugLog(...args) {
-        if (debugEnabled) {
-            console.log(...args);
+    chrome.storage.onChanged.addListener((changes, area) => {
+        if (area === 'local' && changes.extensionEnabled) {
+            extensionEnabled = changes.extensionEnabled.newValue;
         }
-    }
+    });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "toggleExtension") {
         extensionEnabled = message.extensionEnabled;
         debugLog('Extension enabled state changed:', extensionEnabled);
     } else if (message.action === "toggleDebug") {
-        debugEnabled = message.debugEnabled;
-        debugLog('Debug state changed:', debugEnabled);
+        debugLog('Debug state changed:', message.debugEnabled);
     } else if (extensionEnabled && message.action === "scrollElementIntoView") {
         scrollElementIntoView(message.iOrd1Id);
     }
