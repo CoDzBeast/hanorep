@@ -9,9 +9,31 @@ if (!window.hanzoContentScriptInitialized) {
         console.error('chrome.storage.local is unavailable');
     }
 
+    function safeStorageSet(data) {
+        if (!chrome || !chrome.storage || !chrome.storage.local) return;
+        try {
+            chrome.storage.local.set(data);
+        } catch (e) {
+            console.error('chrome.storage.local.set failed:', e);
+        }
+    }
+
+    function safeStorageGet(keys, callback) {
+        if (!chrome || !chrome.storage || !chrome.storage.local) {
+            callback({});
+            return;
+        }
+        try {
+            chrome.storage.local.get(keys, callback);
+        } catch (e) {
+            console.error('chrome.storage.local.get failed:', e);
+            callback({});
+        }
+    }
+
     var extensionEnabled = true; // Default state
 
-    chrome.storage.local.get('extensionEnabled', (data) => {
+    safeStorageGet('extensionEnabled', (data) => {
         if (data.extensionEnabled !== undefined) {
             extensionEnabled = data.extensionEnabled;
         }
@@ -70,13 +92,13 @@ async function openCust0Link() {
             orderDate: dOrd1MonthDay
         };
 
-        chrome.storage.local.set({ 'currentOrderInfo': orderInfo });
+        safeStorageSet({ 'currentOrderInfo': orderInfo });
 
         const newURL = `https://www.hattorihanzoshears.com/cgi-bin/AccountInfo.cfm?iOrder=${iOrd1Text}`;
-        chrome.storage.local.get("lastOpenedURL", (data) => {
+        safeStorageGet("lastOpenedURL", (data) => {
             if (data.lastOpenedURL !== newURL) {
                 chrome.runtime.sendMessage({ url: newURL, iOrd1Id: iOrd1Text });
-                chrome.storage.local.set({ lastOpenedURL: newURL });
+                safeStorageSet({ lastOpenedURL: newURL });
             }
         });
     }
@@ -116,7 +138,7 @@ function handleModalShowEvent() {
 
     // Make sure you call the setSelectedValueForChosen function after ensuring the DOM elements are present
     if (rrqText && txtEmailSubject) {
-        chrome.storage.local.get('currentOrderInfo', (data) => {
+        safeStorageGet('currentOrderInfo', (data) => {
             if (data.currentOrderInfo) {
                 const { orderNumber, orderDate } = data.currentOrderInfo;
                 rrqText.value = `Order ${orderNumber} from ${orderDate} needs a signature on file in order to ship. To ensure efficiency, could you please provide the necessary signature at your earliest convenience? Once we receive this, we will expedite the shipping process to get your order to you as soon as possible. Thank you for your attention to this matter.`;
@@ -248,7 +270,7 @@ function waitForModalToClose(callback) {
 }
 
 function sendSigEmailThroughDropdown() {
-  chrome.storage.local.get('currentOrderInfo', async (data) => {
+  safeStorageGet('currentOrderInfo', async (data) => {
     const orderNumber = data.currentOrderInfo ? data.currentOrderInfo.orderNumber : null;
     let context = document;
     if (orderNumber) {
