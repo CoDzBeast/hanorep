@@ -138,6 +138,24 @@ function setSelectedValueForChosen() {
 
 let sendButtonClicked = false;
 
+function showEmailSentNotification() {
+  const notification = document.createElement('div');
+  notification.textContent = 'Signature request email sent.';
+  Object.assign(notification.style, {
+    position: 'fixed',
+    bottom: '20px',
+    right: '20px',
+    backgroundColor: '#4caf50',
+    color: '#fff',
+    padding: '10px',
+    borderRadius: '4px',
+    zIndex: 9999,
+    fontSize: '14px',
+  });
+  document.body.appendChild(notification);
+  setTimeout(() => notification.remove(), 4000);
+}
+
 function waitForElement(selector, context = document, timeout = 10000, interval = 200) {
   return new Promise((resolve) => {
     const start = Date.now();
@@ -183,6 +201,7 @@ function sendSigEmailThroughDropdown() {
       const resendLink = await waitForElement('a[onclick="SendSigEmail();"]');
       if (resendLink) {
         resendLink.click();
+        showEmailSentNotification();
       }
     }
   });
