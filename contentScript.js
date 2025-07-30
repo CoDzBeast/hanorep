@@ -218,11 +218,32 @@ function attachSendButtonListener() {
     setTimeout(attachSendButtonListener, 100);
     return;
   }
+  if (sendBtn.dataset.listenerAttached) return;
+  sendBtn.dataset.listenerAttached = 'true';
   sendBtn.addEventListener('click', () => {
     debugLog('Send button clicked');
-    // Wait 1 second before opening the order options dropdown
-    setTimeout(sendSigEmailThroughDropdown, 1000);
+    waitForModalToClose(sendSigEmailThroughDropdown);
   });
+}
+
+function waitForModalToClose(callback) {
+  const repReqModal = document.querySelector('#RepReq');
+  if (!repReqModal) {
+    callback();
+    return;
+  }
+  const check = () => {
+    const hidden =
+      !document.body.contains(repReqModal) ||
+      repReqModal.getAttribute('aria-hidden') === 'true';
+    if (hidden) {
+      debugLog('RepReq modal hidden');
+      callback();
+    } else {
+      setTimeout(check, 100);
+    }
+  };
+  check();
 }
 
 function sendSigEmailThroughDropdown() {
