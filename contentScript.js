@@ -220,8 +220,8 @@ function attachSendButtonListener() {
   }
   sendBtn.addEventListener('click', () => {
     debugLog('Send button clicked');
-    // Trigger automation shortly after the send action
-    setTimeout(sendSigEmailThroughDropdown, 500);
+    // Wait 1 second before opening the order options dropdown
+    setTimeout(sendSigEmailThroughDropdown, 1000);
   });
 }
 
@@ -250,7 +250,8 @@ function sendSigEmailThroughDropdown() {
     if (orderBtn) {
       debugLog('Order dropdown button found');
       simulateMouseEvents(orderBtn);
-      await new Promise((r) => setTimeout(r, 200));
+      // Wait for the dropdown menu to expand
+      await new Promise((r) => setTimeout(r, 500));
       debugLog('Looking for resend link within context');
       let resendLink = await waitForElement(
         'a[onclick*="SendSigEmail"]',
