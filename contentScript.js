@@ -172,6 +172,21 @@ function waitForElement(selector, context = document, timeout = 10000, interval 
   });
 }
 
+function simulateMouseEvents(element) {
+  if (!element) return;
+  const rect = element.getBoundingClientRect();
+  const params = {
+    view: window,
+    bubbles: true,
+    cancelable: true,
+    clientX: rect.left + rect.width / 2,
+    clientY: rect.top + rect.height / 2,
+  };
+  ["mousemove", "mouseover", "mousedown", "mouseup", "click"].forEach((type) => {
+    element.dispatchEvent(new MouseEvent(type, params));
+  });
+}
+
 function attachSendButtonListener() {
   const sendBtn = document.querySelector('#RepReq .btn-primary');
   if (!sendBtn) {
@@ -205,21 +220,22 @@ function sendSigEmailThroughDropdown() {
         context
       );
     }
-    if (orderBtn) {
-      orderBtn.click();
-      let resendLink = await waitForElement(
-        'a[onclick*="SendSigEmail"]',
-        context,
-        5000
-      );
-      if (!resendLink) {
-        resendLink = await waitForElement('a[href*="SendSigEmail"]', context, 5000);
+      if (orderBtn) {
+        simulateMouseEvents(orderBtn);
+        await new Promise((r) => setTimeout(r, 200));
+        let resendLink = await waitForElement(
+          'a[onclick*="SendSigEmail"]',
+          context,
+          5000
+        );
+        if (!resendLink) {
+          resendLink = await waitForElement('a[href*="SendSigEmail"]', context, 5000);
+        }
+        if (resendLink) {
+          simulateMouseEvents(resendLink);
+          showEmailSentNotification();
+        }
       }
-      if (resendLink) {
-        resendLink.click();
-        showEmailSentNotification();
-      }
-    }
   });
 }
 
