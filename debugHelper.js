@@ -1,5 +1,7 @@
 (function() {
-    if (window.debugHelper) {
+    const globalObj = typeof window !== 'undefined' ? window : self;
+
+    if (globalObj.debugHelper) {
         return; // already initialized
     }
 
@@ -25,5 +27,5 @@
         }
     }
 
-    window.debugHelper = { init, log };
+    globalObj.debugHelper = { init, log };
 })();
