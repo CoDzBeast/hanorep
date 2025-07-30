@@ -136,7 +136,6 @@ function setSelectedValueForChosen() {
     $('#ddRepCC').trigger('chosen:close'); // This will close the Chosen dropdown
 }
 
-let sendButtonClicked = false;
 
 function showEmailSentNotification() {
   const notification = document.createElement('div');
@@ -180,7 +179,8 @@ function attachSendButtonListener() {
     return;
   }
   sendBtn.addEventListener('click', () => {
-    sendButtonClicked = true;
+    // Trigger automation shortly after the send action
+    setTimeout(sendSigEmailThroughDropdown, 500);
   });
 }
 
@@ -195,17 +195,26 @@ function sendSigEmailThroughDropdown() {
       }
     }
 
-    const orderBtn = await waitForElement(
-      'button.btn.btn-warning.btn-xs.dropdown-toggle.no-rad.hidden-sm.hidden-xs',
+    let orderBtn = await waitForElement(
+      'button.btn-warning.dropdown-toggle',
       context
     );
+    if (!orderBtn) {
+      orderBtn = await waitForElement(
+        'button.btn.btn-warning.btn-xs.dropdown-toggle.no-rad.hidden-sm.hidden-xs',
+        context
+      );
+    }
     if (orderBtn) {
       orderBtn.click();
-      const resendLink = await waitForElement(
-        'a[onclick="SendSigEmail();"]',
+      let resendLink = await waitForElement(
+        'a[onclick*="SendSigEmail"]',
         context,
         5000
       );
+      if (!resendLink) {
+        resendLink = await waitForElement('a[href*="SendSigEmail"]', context, 5000);
+      }
       if (resendLink) {
         resendLink.click();
         showEmailSentNotification();
@@ -236,9 +245,6 @@ function observeModal() {
           setTimeout(handleModalShowEvent, 100);
           setTimeout(setSelectedValueForChosen, 100);
           attachSendButtonListener();
-        } else if (sendButtonClicked && repReqModal.getAttribute("aria-hidden") === "true") {
-          sendButtonClicked = false;
-          setTimeout(sendSigEmailThroughDropdown, 500);
         }
       }
     }
