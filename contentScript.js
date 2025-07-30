@@ -136,6 +136,42 @@ function setSelectedValueForChosen() {
     $('#ddRepCC').trigger('chosen:close'); // This will close the Chosen dropdown
 }
 
+let sendButtonClicked = false;
+
+function attachSendButtonListener() {
+  const sendBtn = document.querySelector('#RepReq .btn-primary');
+  if (!sendBtn) {
+    setTimeout(attachSendButtonListener, 100);
+    return;
+  }
+  sendBtn.addEventListener('click', () => {
+    sendButtonClicked = true;
+  });
+}
+
+function sendSigEmailThroughDropdown() {
+  chrome.storage.local.get('currentOrderInfo', (data) => {
+    const orderNumber = data.currentOrderInfo ? data.currentOrderInfo.orderNumber : null;
+    let context = document;
+    if (orderNumber) {
+      const row = document.querySelector(`#OShip${orderNumber}`);
+      if (row) {
+        context = row;
+      }
+    }
+    const orderBtn = context.querySelector('button.btn.btn-warning.btn-xs.dropdown-toggle.no-rad.hidden-sm.hidden-xs');
+    if (orderBtn) {
+      orderBtn.click();
+      setTimeout(() => {
+        const resendLink = document.querySelector('a[onclick="SendSigEmail();"]');
+        if (resendLink) {
+          resendLink.click();
+        }
+      }, 200);
+    }
+  });
+}
+
 
 
 function observeModal() {
@@ -156,7 +192,11 @@ function observeModal() {
         if (repReqModal.getAttribute("aria-hidden") === "false") {
           console.log("Modal is visible");
           setTimeout(handleModalShowEvent, 100);
-          setTimeout(setSelectedValueForChosen, 100); 
+          setTimeout(setSelectedValueForChosen, 100);
+          attachSendButtonListener();
+        } else if (sendButtonClicked && repReqModal.getAttribute("aria-hidden") === "true") {
+          sendButtonClicked = false;
+          setTimeout(sendSigEmailThroughDropdown, 500);
         }
       }
     }
