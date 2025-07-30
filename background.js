@@ -1,12 +1,34 @@
 importScripts('debugHelper.js');
 
+function safeStorageSet(data) {
+    if (!chrome || !chrome.storage || !chrome.storage.local) return;
+    try {
+        chrome.storage.local.set(data);
+    } catch (e) {
+        console.error('chrome.storage.local.set failed:', e);
+    }
+}
+
+function safeStorageGet(keys, callback) {
+    if (!chrome || !chrome.storage || !chrome.storage.local) {
+        callback({});
+        return;
+    }
+    try {
+        chrome.storage.local.get(keys, callback);
+    } catch (e) {
+        console.error('chrome.storage.local.get failed:', e);
+        callback({});
+    }
+}
+
 let tabOpenedRecently = false;
 let newTabId = null;
 let extensionEnabled = true; // Default state
 
 debugHelper.init();
 
-chrome.storage.local.get(['extensionEnabled'], function(result) {
+safeStorageGet(['extensionEnabled'], function(result) {
     if (result.extensionEnabled !== undefined) {
         extensionEnabled = result.extensionEnabled;
     }
@@ -22,10 +44,10 @@ chrome.storage.onChanged.addListener((changes, area) => {
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "toggleExtension") {
         extensionEnabled = request.extensionEnabled;
-        chrome.storage.local.set({ 'extensionEnabled': extensionEnabled });
+        safeStorageSet({ 'extensionEnabled': extensionEnabled });
         debugHelper.log('Extension enabled state changed:', extensionEnabled);
     } else if (request.action === "toggleDebug") {
-        chrome.storage.local.set({ 'debugEnabled': request.debugEnabled });
+        safeStorageSet({ 'debugEnabled': request.debugEnabled });
         debugHelper.log('Debug state changed:', request.debugEnabled);
     }
 
