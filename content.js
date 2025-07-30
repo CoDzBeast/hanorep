@@ -1,16 +1,5 @@
-let debugEnabled = false;
-
-chrome.storage.local.get('debugEnabled', (data) => {
-    if (data.debugEnabled !== undefined) {
-        debugEnabled = data.debugEnabled;
-    }
-});
-
-function debugLog(...args) {
-    if (debugEnabled) {
-        console.log(...args);
-    }
-}
+debugHelper.init();
+const debugLog = debugHelper.log;
 
 debugLog("Content script loaded");
 
@@ -129,8 +118,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "scrollElementIntoView") {
         scrollElementIntoView(message.iOrd1Id);
     } else if (message.action === "toggleDebug") {
-        debugEnabled = message.debugEnabled;
-        debugLog('Debug state changed:', debugEnabled);
+        debugLog('Debug state changed:', message.debugEnabled);
     }
 });
 
