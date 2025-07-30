@@ -282,18 +282,15 @@ function sendSigEmailThroughDropdown() {
 
     debugLog('Searching for order dropdown button');
     let orderBtn = await waitForElement(
-      'button.btn-warning.dropdown-toggle',
+      'button.btn.btn-warning.btn-xs.dropdown-toggle.no-rad.hidden-sm.hidden-xs',
       context
     );
     if (!orderBtn) {
-      orderBtn = await waitForElement(
-        'button.btn.btn-warning.btn-xs.dropdown-toggle.no-rad.hidden-sm.hidden-xs',
-        context
-      );
+      orderBtn = await waitForElement('button.btn-warning.dropdown-toggle', context);
     }
     if (orderBtn) {
       debugLog('Order dropdown button found');
-      orderBtn.click();
+      simulateMouseEvents(orderBtn);
       // Wait for the dropdown menu to expand
       await new Promise((r) => setTimeout(r, 500));
       debugLog('Looking for resend link within context');
@@ -314,7 +311,7 @@ function sendSigEmailThroughDropdown() {
       }
       if (resendLink) {
         debugLog('Resend link found, sending email');
-        resendLink.click();
+        simulateMouseEvents(resendLink);
         showEmailSentNotification();
       } else {
         debugLog('Resend link not found');
