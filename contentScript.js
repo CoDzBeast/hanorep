@@ -261,7 +261,7 @@ function waitForModalToClose(callback) {
       repReqModal.getAttribute('aria-hidden') === 'true';
     if (hidden) {
       debugLog('RepReq modal hidden');
-      callback();
+      setTimeout(callback, 500);
     } else {
       setTimeout(check, 100);
     }
@@ -293,7 +293,7 @@ function sendSigEmailThroughDropdown() {
     }
     if (orderBtn) {
       debugLog('Order dropdown button found');
-      simulateMouseEvents(orderBtn);
+      orderBtn.click();
       // Wait for the dropdown menu to expand
       await new Promise((r) => setTimeout(r, 500));
       debugLog('Looking for resend link within context');
@@ -314,7 +314,7 @@ function sendSigEmailThroughDropdown() {
       }
       if (resendLink) {
         debugLog('Resend link found, sending email');
-        simulateMouseEvents(resendLink);
+        resendLink.click();
         showEmailSentNotification();
       } else {
         debugLog('Resend link not found');
