@@ -7,16 +7,33 @@ if (!window.hanzoContentScriptInitialized) {
     }
 
     var extensionEnabled = true; // Default state
+    var debugEnabled = false;
+
+    chrome.storage.local.get('debugEnabled', (data) => {
+        if (data.debugEnabled !== undefined) {
+            debugEnabled = data.debugEnabled;
+        }
+    });
+
+    function debugLog(...args) {
+        if (debugEnabled) {
+            console.log(...args);
+        }
+    }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "toggleExtension") {
         extensionEnabled = message.extensionEnabled;
+        debugLog('Extension enabled state changed:', extensionEnabled);
+    } else if (message.action === "toggleDebug") {
+        debugEnabled = message.debugEnabled;
+        debugLog('Debug state changed:', debugEnabled);
     } else if (extensionEnabled && message.action === "scrollElementIntoView") {
         scrollElementIntoView(message.iOrd1Id);
     }
 });
 
-console.log("Extension is running");
+debugLog("Content script running");
 
 async function openCust0Link() {
     const currentURL = new URL(window.location.href);
@@ -124,19 +141,19 @@ function setSelectedValueForChosen() {
     }
 
     // Debug current value
-    console.log('Current value before update:', $('#ddRepCC').val());
+    debugLog('Current value before update:', $('#ddRepCC').val());
 
     // Set new value and trigger update
     $('#ddRepCC').val('shipping@hanzonation.com').trigger('chosen:updated');
 
     // Debug new value after update
-    console.log('New value after update:', $('#ddRepCC').val());
+    debugLog('New value after update:', $('#ddRepCC').val());
 
     // Debug selected options after update
     var selectedOptions = $('#ddRepCC').find(':selected').map(function() {
         return $(this).val();
     }).get();
-    console.log('Selected options after update:', selectedOptions);
+    debugLog('Selected options after update:', selectedOptions);
 
     // Additional check to ensure the visual component updates
     // If the visual update is not occurring, you may need to manually trigger a click or focus event
@@ -252,20 +269,20 @@ function sendSigEmailThroughDropdown() {
 function observeModal() {
   const repReqModal = document.querySelector('#RepReq');
   if (!repReqModal) {
-    console.log("RepReq not found");
+    debugLog("RepReq not found");
     setTimeout(observeModal, 100);
     return;
   }
 
-  console.log("Found RepReq");
+  debugLog("Found RepReq");
   const config = { attributes: true, attributeFilter: ["aria-hidden"] };
 
   const callback = function (mutationsList) {
     for (const mutation of mutationsList) {
       if (mutation.type === "attributes" && mutation.attributeName === "aria-hidden") {
-        console.log("aria-hidden changed");
+        debugLog("aria-hidden changed");
         if (repReqModal.getAttribute("aria-hidden") === "false") {
-          console.log("Modal is visible");
+          debugLog("Modal is visible");
           setTimeout(handleModalShowEvent, 100);
           setTimeout(setSelectedValueForChosen, 100);
           attachSendButtonListener();
