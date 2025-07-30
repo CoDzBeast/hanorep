@@ -1,4 +1,12 @@
-let extensionEnabled = true; // Default state
+if (!window.hanzoContentScriptInitialized) {
+    window.hanzoContentScriptInitialized = true;
+
+    // Ensure the Chrome storage API is available before using it
+    if (!chrome || !chrome.storage || !chrome.storage.local) {
+        console.error('chrome.storage.local is unavailable');
+    }
+
+    var extensionEnabled = true; // Default state
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "toggleExtension") {
@@ -274,3 +282,5 @@ if (extensionEnabled) {
     observeBody();
     observeModal();
 }
+
+} // End check for initialization
