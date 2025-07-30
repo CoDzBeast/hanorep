@@ -138,6 +138,23 @@ function setSelectedValueForChosen() {
 
 let sendButtonClicked = false;
 
+function waitForElement(selector, context = document, timeout = 10000, interval = 200) {
+  return new Promise((resolve) => {
+    const start = Date.now();
+    const check = () => {
+      const el = context.querySelector(selector);
+      if (el) {
+        resolve(el);
+      } else if (Date.now() - start >= timeout) {
+        resolve(null);
+      } else {
+        setTimeout(check, interval);
+      }
+    };
+    check();
+  });
+}
+
 function attachSendButtonListener() {
   const sendBtn = document.querySelector('#RepReq .btn-primary');
   if (!sendBtn) {
@@ -150,7 +167,7 @@ function attachSendButtonListener() {
 }
 
 function sendSigEmailThroughDropdown() {
-  chrome.storage.local.get('currentOrderInfo', (data) => {
+  chrome.storage.local.get('currentOrderInfo', async (data) => {
     const orderNumber = data.currentOrderInfo ? data.currentOrderInfo.orderNumber : null;
     let context = document;
     if (orderNumber) {
@@ -159,15 +176,14 @@ function sendSigEmailThroughDropdown() {
         context = row;
       }
     }
-    const orderBtn = context.querySelector('button.btn.btn-warning.btn-xs.dropdown-toggle.no-rad.hidden-sm.hidden-xs');
+
+    const orderBtn = await waitForElement('button.btn.btn-warning.btn-xs.dropdown-toggle.no-rad.hidden-sm.hidden-xs', context);
     if (orderBtn) {
       orderBtn.click();
-      setTimeout(() => {
-        const resendLink = document.querySelector('a[onclick="SendSigEmail();"]');
-        if (resendLink) {
-          resendLink.click();
-        }
-      }, 200);
+      const resendLink = await waitForElement('a[onclick="SendSigEmail();"]');
+      if (resendLink) {
+        resendLink.click();
+      }
     }
   });
 }
