@@ -219,6 +219,7 @@ function attachSendButtonListener() {
     return;
   }
   sendBtn.addEventListener('click', () => {
+    debugLog('Send button clicked');
     // Trigger automation shortly after the send action
     setTimeout(sendSigEmailThroughDropdown, 500);
   });
@@ -235,6 +236,7 @@ function sendSigEmailThroughDropdown() {
       }
     }
 
+    debugLog('Searching for order dropdown button');
     let orderBtn = await waitForElement(
       'button.btn-warning.dropdown-toggle',
       context
@@ -245,22 +247,36 @@ function sendSigEmailThroughDropdown() {
         context
       );
     }
-      if (orderBtn) {
-        simulateMouseEvents(orderBtn);
-        await new Promise((r) => setTimeout(r, 200));
-        let resendLink = await waitForElement(
-          'a[onclick*="SendSigEmail"]',
-          context,
-          5000
-        );
+    if (orderBtn) {
+      debugLog('Order dropdown button found');
+      simulateMouseEvents(orderBtn);
+      await new Promise((r) => setTimeout(r, 200));
+      debugLog('Looking for resend link within context');
+      let resendLink = await waitForElement(
+        'a[onclick*="SendSigEmail"]',
+        context,
+        5000
+      );
+      if (!resendLink) {
+        resendLink = await waitForElement('a[href*="SendSigEmail"]', context, 5000);
+      }
+      if (!resendLink) {
+        debugLog('Resend link not found in context, searching document');
+        resendLink = await waitForElement('a[onclick*="SendSigEmail"]');
         if (!resendLink) {
-          resendLink = await waitForElement('a[href*="SendSigEmail"]', context, 5000);
-        }
-        if (resendLink) {
-          simulateMouseEvents(resendLink);
-          showEmailSentNotification();
+          resendLink = await waitForElement('a[href*="SendSigEmail"]');
         }
       }
+      if (resendLink) {
+        debugLog('Resend link found, sending email');
+        simulateMouseEvents(resendLink);
+        showEmailSentNotification();
+      } else {
+        debugLog('Resend link not found');
+      }
+    } else {
+      debugLog('Order dropdown button not found');
+    }
   });
 }
 
