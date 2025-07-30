@@ -195,10 +195,17 @@ function sendSigEmailThroughDropdown() {
       }
     }
 
-    const orderBtn = await waitForElement('button.btn.btn-warning.btn-xs.dropdown-toggle.no-rad.hidden-sm.hidden-xs', context);
+    const orderBtn = await waitForElement(
+      'button.btn.btn-warning.btn-xs.dropdown-toggle.no-rad.hidden-sm.hidden-xs',
+      context
+    );
     if (orderBtn) {
       orderBtn.click();
-      const resendLink = await waitForElement('a[onclick="SendSigEmail();"]');
+      const resendLink = await waitForElement(
+        'a[onclick="SendSigEmail();"]',
+        context,
+        5000
+      );
       if (resendLink) {
         resendLink.click();
         showEmailSentNotification();
