@@ -1,7 +1,23 @@
-console.log("Extension is running");
+let debugEnabled = false;
+
+chrome.storage.local.get('debugEnabled', (data) => {
+    if (data.debugEnabled !== undefined) {
+        debugEnabled = data.debugEnabled;
+    }
+});
+
+function debugLog(...args) {
+    if (debugEnabled) {
+        console.log(...args);
+    }
+}
+
+debugLog("Content script loaded");
 
 async function openCust0Link() {
     const currentURL = new URL(window.location.href);
+
+    debugLog('Checking page for order link');
 
     if (currentURL.searchParams.get("openedByExtension")) return;
 
@@ -24,9 +40,11 @@ async function openCust0Link() {
         const iOrd1Text = iOrd1Element.textContent;
         await navigator.clipboard.writeText(iOrd1Text);
         const newURL = `https://www.hattorihanzoshears.com/cgi-bin/AccountInfo.cfm?iOrder=${iOrd1Text}`;
+        debugLog('Opening account info page for order', iOrd1Text);
 
         chrome.storage.local.get("lastOpenedURL", (data) => {
             if (data.lastOpenedURL !== newURL) {
+                debugLog('Sending message to background to open order', iOrd1Text);
                 chrome.runtime.sendMessage({ url: newURL, iOrd1Id: iOrd1Text });
                 chrome.storage.local.set({ lastOpenedURL: newURL });
             }
@@ -66,6 +84,8 @@ function handleModalShowEvent() {
     const rrqText = document.querySelector("#RRqText");
     const txtEmailSubject = document.querySelector("#txtEmailSubject");
 
+    debugLog('Filling modal fields for email');
+
     if (rrqText && txtEmailSubject) {
         navigator.clipboard.readText().then((clipboardData) => {
             const orderNumber = clipboardData;
@@ -79,15 +99,15 @@ function observeModal() {
     const repReqModal = document.querySelector('#RepReq');
 
     if (repReqModal) {
-        console.log("Found RepReq");
+        debugLog("Found RepReq");
         const config = { attributes: true, attributeFilter: ["aria-hidden"] };
 
         const callback = function (mutationsList) {
             for (const mutation of mutationsList) {
                 if (mutation.type === "attributes" && mutation.attributeName === "aria-hidden") {
-                    console.log("aria-hidden changed");
+                    debugLog("aria-hidden changed");
                     if (repReqModal.getAttribute("aria-hidden") === "false") {
-                        console.log("Modal is visible");
+                        debugLog("Modal is visible");
                         handleModalShowEvent();
                     }
                 }
@@ -97,7 +117,7 @@ function observeModal() {
         const observer = new MutationObserver(callback);
         observer.observe(repReqModal, config);
     } else {
-        console.log("RepReq not found");
+        debugLog("RepReq not found");
         setTimeout(observeModal, 1000);
     }
 }
@@ -108,6 +128,9 @@ observeModal();
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "scrollElementIntoView") {
         scrollElementIntoView(message.iOrd1Id);
+    } else if (message.action === "toggleDebug") {
+        debugEnabled = message.debugEnabled;
+        debugLog('Debug state changed:', debugEnabled);
     }
 });
 
