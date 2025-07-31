@@ -286,7 +286,10 @@ function sendSigEmailThroughDropdown() {
       context
     );
     if (!orderBtn) {
-      orderBtn = await waitForElement('button.btn-warning.dropdown-toggle', context);
+      orderBtn = await waitForElement(
+        'button.btn-warning.dropdown-toggle, a.btn-warning.dropdown-toggle',
+        context
+      );
     }
     if (orderBtn) {
       debugLog('Order dropdown button found');
