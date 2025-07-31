@@ -297,20 +297,12 @@ function sendSigEmailThroughDropdown() {
       // Wait for the dropdown menu to expand
       await new Promise((r) => setTimeout(r, 500));
       debugLog('Looking for resend link within context');
-      let resendLink = await waitForElement(
-        'a[onclick*="SendSigEmail"]',
-        context,
-        5000
-      );
-      if (!resendLink) {
-        resendLink = await waitForElement('a[href*="SendSigEmail"]', context, 5000);
-      }
+      const resendSelectors =
+        'li.Sig0 a[onclick*="SendSigEmail"], li.Sig0 a[href*="SendSigEmail"], a[onclick*="SendSigEmail"], a[href*="SendSigEmail"]';
+      let resendLink = await waitForElement(resendSelectors, context, 5000);
       if (!resendLink) {
         debugLog('Resend link not found in context, searching document');
-        resendLink = await waitForElement('a[onclick*="SendSigEmail"]');
-        if (!resendLink) {
-          resendLink = await waitForElement('a[href*="SendSigEmail"]');
-        }
+        resendLink = await waitForElement(resendSelectors);
       }
       if (resendLink) {
         debugLog('Resend link found, sending email');
